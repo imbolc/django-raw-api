@@ -17,7 +17,7 @@ def hello(request):
 
 Setup
 -----
-- Install in from pypi: `pip install raw_api`
+- Install in from pypi: `pip install django-raw-api`
 - Add `raw_api.middleware` middleware into `MIDDLEWARE` list of your `settings.py`
 
 API
@@ -46,7 +46,7 @@ def with_status(request):
 
 ### Auth
 Decorators `@user_required` and `@staff_required` is analogous to
-`login_required` and  `@staff_member_required` with JSON output instead of
+`@login_required` and  `@staff_member_required` with JSON output instead of
 redirecting
 
 ```python
@@ -84,7 +84,7 @@ Tests
     python -m venv .venv
     source .venv/bin/activate
     pip install -Ur requirements-dev.txt
-    python -m pytest tests/
+    python -m pytest tests
 ```
 
 [trafaret]: https://github.com/Deepwalker/trafaret
