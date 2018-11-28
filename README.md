@@ -37,10 +37,10 @@ You can just return `dict` of your date or you can add a status code
 
 ```python
 def json_data(request):
-    return {'hello': 'world'}
+    return {"hello": "world"}
 
 def with_status(request):
-    return {'message': 'bad request'}, 400
+    return {"message": "bad request"}, 400
 ```
 
 
@@ -54,7 +54,7 @@ from raw_api import staff_required
 
 @staff_required
 async def hello(request):
-    return {'admin': 'zone'}
+    return {"admin": "zone"}
 ```
 
 
@@ -67,11 +67,11 @@ validation.
 ```python
 from raw_api import validate_json, validate_query
 
-@validate_json({'ids': [int], 'hello?': str})
+@validate_json({"ids": [int], "hello?": str})
 async def foo(request):
     return request.json
 
-@validate_query({'id': int})
+@validate_query({"id": int})
 async def bar(request):
     assert isinstance(id, int)
     return request.query
