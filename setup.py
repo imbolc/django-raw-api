@@ -5,13 +5,14 @@ import setuptools
 
 
 if sys.argv[-1] == "publish":
-    os.system("python setup.py sdist upload")
+    os.system("python setup.py bdist_wheel")
+    os.system("python -m twine upload dist/*")
     sys.exit(0)
 
 
 setuptools.setup(
     name="django-raw-api",
-    version="0.1.0",
+    version="0.1.1",
     description="JSON API should be as simple as `dict` and status code :)",
     long_description=open("./README.md").read(),
     long_description_content_type="text/markdown",
