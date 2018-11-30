@@ -1,8 +1,7 @@
-import json
+from json import loads
 from functools import wraps
 
 from django.http import JsonResponse
-from django.utils.functional import SimpleLazyObject
 from django.core.exceptions import SuspiciousOperation
 
 from trafaret import DataError
@@ -12,14 +11,31 @@ from trafaret.constructor import construct
 def middleware(get_response):
     """Add `request.json` attribute and encode response into json"""
 
-    def load_json(request):
-        try:
-            return json.loads(request.body.decode("utf-8"))
-        except Exception:
-            raise SuspiciousOperation("Invalid JSON")
+    def add_json_property(request):
+        cached = None
+
+        @property
+        def json(self):
+            nonlocal cached
+            if cached is None:
+                try:
+                    cached = loads(request.body.decode("utf-8"))
+                except Exception:
+                    raise SuspiciousOperation("Invalid JSON")
+            return cached
+
+        @json.setter
+        def json(self, val):
+            nonlocal cached
+            cached = val
+
+        cls = type(request)
+        cls = type(cls.__name__, (cls,), {})
+        request.__class__ = cls
+        setattr(cls, 'json', json)
 
     def _middleware(request):
-        request.json = SimpleLazyObject(lambda: load_json(request))
+        add_json_property(request)
         response = get_response(request)
         if isinstance(response, dict):
             return JsonResponse(response)

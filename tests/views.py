@@ -21,7 +21,7 @@ def django_response(request):
 
 
 def request_json(request):
-    return dict(request.json)
+    return request.json
 
 
 @user_required

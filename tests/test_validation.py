@@ -75,7 +75,7 @@ def test_json_extra_params():
 
 def test_json_ok():
     resp = Client().post(
-        "/json-validation", {"id": 1}, content_type="application/json"
+        "/json-validation", {"id": '1'}, content_type="application/json"
     )
     assert resp.status_code == 200
     assert resp.json() == {"id": 1}

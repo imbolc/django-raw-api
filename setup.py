@@ -12,7 +12,7 @@ if sys.argv[-1] == "publish":
 
 setuptools.setup(
     name="django-raw-api",
-    version="0.1.1",
+    version="0.1.2",
     description="JSON API should be as simple as `dict` and status code :)",
     long_description=open("./README.md").read(),
     long_description_content_type="text/markdown",
