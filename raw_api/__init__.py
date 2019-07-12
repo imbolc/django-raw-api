@@ -3,9 +3,17 @@ from functools import wraps
 
 from django.http import JsonResponse
 from django.core.exceptions import SuspiciousOperation
+from django.conf import settings
 
 from trafaret import DataError
 from trafaret.constructor import construct
+
+
+JSON_PARAMS = (
+    {"indent": 4, "ensure_ascii": False, "sort_keys": True}
+    if settings.DEBUG
+    else {}
+)
 
 
 def middleware(get_response):
@@ -32,16 +40,18 @@ def middleware(get_response):
         cls = type(request)
         cls = type(cls.__name__, (cls,), {})
         request.__class__ = cls
-        setattr(cls, 'json', json)
+        setattr(cls, "json", json)
 
     def _middleware(request):
         add_json_property(request)
         response = get_response(request)
         if isinstance(response, dict):
-            return JsonResponse(response)
+            return JsonResponse(response, json_dumps_params=JSON_PARAMS)
         if isinstance(response, tuple) and len(response) == 2:
             data, status = response
-            return JsonResponse(data, status=status)
+            return JsonResponse(
+                data, status=status, json_dumps_params=JSON_PARAMS
+            )
         return response
 
     return _middleware
