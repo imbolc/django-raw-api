@@ -11,7 +11,7 @@ from raw_api import validate_json
 def hello(request):
     name = request.json["name"]
     if name == "world":
-        return {"message": "too corny"}, 400
+        return "won't work here", 400
     return {"hello": name}
 ```
 
@@ -22,9 +22,11 @@ Setup
 
 API
 ---
+
 ### Middleware
-It adds lazy `request.json` attribute and serializes raw responses such as
-`dict` or `(data: dict, status: int)` into JSON.
+It adds lazy `request.json` attribute and serializes raw responses such as:
+- `str` or tuple `(message: str, status: int)` - into plain text response
+- `dict` or `(data: dict, status: int)` - into JSON response
 
 ### Request
 
@@ -33,11 +35,16 @@ It adds lazy `request.json` attribute and serializes raw responses such as
 
 
 ### Response
-You can just return `dict` of your date or you can add a status code
+You can just return `str`, `dict` with an optional status code
 
 ```python
-def json_data(request):
+def hello(request):
+    return "hi"
+
+
+def hello_json(request):
     return {"hello": "world"}
+
 
 def with_status(request):
     return {"message": "bad request"}, 400
@@ -60,9 +67,9 @@ async def hello(request):
 
 Data validation
 ---------------
-You can use `@validate_query` and `@validate_json` decorators
-to validate requests data. They're using [trafaret][] library to perform
-validation.
+`@validate_query` and `@validate_json` decorators are there to perform simple
+first-level validation of requests data. Internally they use the [trafaret][]
+library.
 
 ```python
 from raw_api import validate_json, validate_query

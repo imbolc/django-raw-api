@@ -3,8 +3,10 @@ from django.urls import path
 import views
 
 urlpatterns = [
-    path("dict", views.dict_response),
-    path("tuple", views.tuple_response),
+    path("dict-response", views.dict_response),
+    path("string-response", views.string_response),
+    path("tuple-dict-response", views.tuple_dict_response),
+    path("tuple-string-response", views.tuple_string_response),
     path("django-response", views.django_response),
     path("request-json", views.request_json),
     path("require-user", views.require_user),

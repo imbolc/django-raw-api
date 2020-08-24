@@ -1,13 +1,13 @@
-from json import loads
 from functools import wraps
+from json import loads
+from typing import Any, Dict, Union
 
-from django.http import JsonResponse
-from django.core.exceptions import SuspiciousOperation
 from django.conf import settings
+from django.core.exceptions import SuspiciousOperation
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from trafaret import DataError
 from trafaret.constructor import construct
-
 
 JSON_PARAMS = (
     {"indent": 4, "ensure_ascii": False, "sort_keys": True}
@@ -17,44 +17,60 @@ JSON_PARAMS = (
 
 
 def middleware(get_response):
-    """Add `request.json` attribute and encode response into json"""
+    """Adds `request.json` attribute and encodes string / dict responses"""
 
-    def add_json_property(request):
-        cached = None
-
-        @property
-        def json(self):
-            nonlocal cached
-            if cached is None:
-                try:
-                    cached = loads(request.body.decode("utf-8"))
-                except Exception:
-                    raise SuspiciousOperation("Invalid JSON")
-            return cached
-
-        @json.setter
-        def json(self, val):
-            nonlocal cached
-            cached = val
-
-        cls = type(request)
-        cls = type(cls.__name__, (cls,), {})
-        request.__class__ = cls
-        setattr(cls, "json", json)
-
-    def _middleware(request):
-        add_json_property(request)
+    def _middleware(request: HttpRequest) -> HttpResponse:
+        _add_json_property(request)
         response = get_response(request)
-        if isinstance(response, dict):
-            return JsonResponse(response, json_dumps_params=JSON_PARAMS)
-        if isinstance(response, tuple) and len(response) == 2:
+
+        if (
+            isinstance(response, tuple)
+            and len(response) == 2
+            and isinstance(response[1], int)
+        ):
             data, status = response
-            return JsonResponse(
-                data, status=status, json_dumps_params=JSON_PARAMS
-            )
+        else:
+            data, status = response, 200
+        if isinstance(data, (str, dict)):
+            return _to_response(data, status)
+
         return response
 
     return _middleware
+
+
+def _add_json_property(request: HttpRequest) -> None:
+    """Adds `json` property into a request"""
+    cached = None
+
+    @property  # type: ignore
+    def json(self):
+        nonlocal cached
+        if cached is None:
+            try:
+                cached = loads(request.body.decode("utf-8"))
+            except Exception:
+                raise SuspiciousOperation("Invalid JSON")
+        return cached
+
+    @json.setter
+    def json(self, val):
+        nonlocal cached
+        cached = val
+
+    cls = type(request)
+    cls = type(cls.__name__, (cls,), {})
+    request.__class__ = cls
+    setattr(cls, "json", json)
+
+
+def _to_response(
+    data: Union[str, Dict[str, Any]], status: int
+) -> HttpResponse:
+    """Encodes data and status into django `HttpResponse`"""
+    if isinstance(data, str):
+        return HttpResponse(data, status=status, content_type="text/plain")
+    return JsonResponse(data, status=status, json_dumps_params=JSON_PARAMS)
 
 
 def validate_json(validator):

@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 
 from raw_api import (
-    user_required,
     staff_required,
-    validate_query,
+    user_required,
     validate_json,
+    validate_query,
 )
 
 
@@ -12,8 +12,16 @@ def dict_response(request):
     return {"hello": "world"}
 
 
-def tuple_response(request):
+def string_response(request):
+    return "hey"
+
+
+def tuple_dict_response(request):
     return {"bad": "request"}, 400
+
+
+def tuple_string_response(request):
+    return "bad request", 400
 
 
 def django_response(request):
