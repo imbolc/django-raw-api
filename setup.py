@@ -5,8 +5,11 @@ import sys
 import setuptools
 
 if sys.argv[-1] == "publish":
+    err = os.system("python -m pytest tests")
+    if err:
+        exit(err)
     os.system("python setup.py bdist_wheel")
-    os.system("python -m twine upload dist/*")
+    os.system("python -m twine upload --skip-existing dist/*")
     sys.exit(0)
 
 
