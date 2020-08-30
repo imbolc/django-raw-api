@@ -1,0 +1,85 @@
+<!doctype html>
+<title>Django async views</title>
+
+Number of parallel requests: <input autofocus type=number value=6>
+<button onclick=send_multi(validate_query)>@validate_query</button>
+<button onclick=send_multi(validate_json)>@validate_json</button>
+<button onclick=send_multi(user_required)>@user_required</button>
+<button onclick=send_multi(staff_required)>@staff_required</button>
+<br>
+<i>* most browsers limit actuall parallel connections to 6
+    <a href="https://docs.pushtechnology.com/cloud/latest/manual/html/designguide/solution/support/connection_limitations.html">details</a>
+</i>
+<br>
+<textarea readonly rows=20></textarea>
+
+<script>
+    const SERVER_SLEEPS = {{sleep}}
+    let id = 1
+    let get_id = () => id++
+
+    function log(msg, id) {
+        msg = id ? `#${id.toString().padStart(3, "0")} ${msg}` : msg
+        console.log(msg)
+        let area = document.querySelector("textarea")
+        area.innerHTML += msg + "\n"
+        area.scrollTop = area.scrollHeight;
+    }
+
+    async function send_multi(sender) {
+        document.querySelectorAll("button").forEach(x => x.disabled = true)
+        let num = document.querySelector("input").value
+        let started = new Date()
+        await Promise.all(Array.from({length: num}, () => sender()))
+        let took = ((new Date()) - started) / 1000
+        log(`Took ${took} seconds, sequential call wouldn't take less than ${SERVER_SLEEPS * num}`)
+        document.querySelectorAll("button").forEach(x => x.disabled = false)
+    }
+
+    async function validate_query() {
+        let id = get_id()
+        let url = `/query?id=${id}`
+        log(`GET ${url}`, id)
+        let r = await (await fetch(url)).text()
+        log(`got ${r}`, id)
+    }
+
+    async function validate_json() {
+        let id = get_id()
+        let url = `/json`
+        let body = JSON.stringify({id});
+        log(`POST ${url} ${body}`, id)
+        let r = await fetch(url, {
+            method: "POST",
+            body: body,
+        })
+        r = await r.text()
+        log(`got ${r}`, id)
+    }
+
+    async function user_required() {
+        let id = get_id()
+        let url = `/user?_=${id}`
+        log(`GET ${url}`, id)
+        let r = await (await fetch(url)).text()
+        log(`got ${r}`, id)
+    }
+
+    async function staff_required() {
+        let id = get_id()
+        let url = `/staff?_=${id}`
+        log(`GET ${url}`, id)
+        let r = await (await fetch(url)).text()
+        log(`got ${r}`, id)
+    }
+</script>
+
+<style>
+textarea {
+    width: 100%;
+    height: 50%;
+}
+input {
+    width: 3em;
+}
+</style>
