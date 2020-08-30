@@ -6,9 +6,10 @@ from django.core.management import call_command
 def pytest_configure():
     settings.configure(
         DATABASES={
+            # Can't use sqlite as `sync_to_async` assumes multi-threading
             "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": ":memory:",
+                "ENGINE": "django.db.backends.postgresql_psycopg2",
+                "NAME": "django_raw_api",
             }
         },
         INSTALLED_APPS=[

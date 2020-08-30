@@ -15,8 +15,8 @@ if sys.argv[-1] == "publish":
 
 setuptools.setup(
     name="django-raw-api",
-    version="0.3.0",
-    description="JSON API should be as simple as `dict` and status code :)",
+    version="0.4.0",
+    description="Async-friendly straightforward Django API helpers",
     long_description=open("./README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/imbolc/django-raw-api",

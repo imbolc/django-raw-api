@@ -1,6 +1,6 @@
 django-raw-api
 ==============
-JSON API should be as simple as `dict` and status code :)
+[Async][async views]-friendly straightforward Django API helpers
 
 Hello world
 -----------
@@ -10,57 +10,66 @@ from raw_api import validate_json
 @validate_json({"name": str})
 def hello(request):
     name = request.json["name"]
-    if name == "world":
-        return "won't work here", 400
-    return {"hello": name}
+    if name == "death":
+        return "not today", 403
+    return {"hello": request.json["name"]}
 ```
 
 Setup
 -----
+
 - Install in from pypi: `pip install django-raw-api`
-- Add `raw_api.middleware` middleware into `MIDDLEWARE` list of your `settings.py`
+- Add `raw_api` into `INSTALLED_APPS` list of your `settings.py`
+- Add `raw_api.middleware` middleware into `MIDDLEWARE`
 
 API
 ---
 
 ### Middleware
+
 It adds lazy `request.json` attribute and serializes raw responses such as:
-- `str` or tuple `(message: str, status: int)` - into plain text response
-- `dict` or `(data: dict, status: int)` - into JSON response
+- `str` or `tuple(message: str, status: int)` - into plain text response
+- `dict` or `tuple(data: dict, status: int)` - into JSON response
 
 ### Request
 
-- `request.json` - parsed json
-- `request.query` - parsed query (only after `@validate_query`)
+- `request.json: dict` - parsed json
+- `request.query: dict` - parsed query (only after `@validate_query`)
 
 
 ### Response
-You can just return `str`, `dict` with an optional status code
+
+You can just return `str` or `dict` with an optional status code
 
 ```python
-def hello(request):
-    return "hi"
-
-
-def hello_json(request):
+def json_200ok(request):
     return {"hello": "world"}
 
 
-def with_status(request):
-    return {"message": "bad request"}, 400
+def plain_text_with_status(request):
+    return "bad request", 400
 ```
 
 
-### Auth
+### Authorization
+
 Decorators `@user_required` and `@staff_required` is analogous to
-`@login_required` and  `@staff_member_required` with JSON output instead of
-redirecting
+`@login_required` and  `@staff_member_required` with JSON-based errors instead
+of redirecting
+
+Both decorators cache `request.user` so you can use it without `sync_to_async`
+even in async views.
 
 ```python
-from raw_api import staff_required
+from raw_api import user_required, staff_required
+
+@user_required
+async def user(request):
+    # no `sync_to_async` required
+    return request.user.username
 
 @staff_required
-async def hello(request):
+def staff(request):
     return {"admin": "zone"}
 ```
 
@@ -79,11 +88,15 @@ async def foo(request):
     return request.json
 
 @validate_query({"id": int})
-async def bar(request):
+def bar(request):
     assert isinstance(id, int)
     return request.query
 ```
 
+Examples
+--------
+
+There's an example of using it with [async views][] in the `examples` folder.
 
 Tests
 -----
@@ -94,4 +107,5 @@ Tests
     python -m pytest tests
 ```
 
+[async views]: https://docs.djangoproject.com/en/3.1/topics/async/#async-views
 [trafaret]: https://github.com/Deepwalker/trafaret

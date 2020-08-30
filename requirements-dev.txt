@@ -3,3 +3,4 @@ pytest-django
 django-stubs
 twine
 wheel
+psycopg2-binary
